@@ -1,7 +1,8 @@
 from datetime import timedelta
-from typing import Annotated
+from typing import Annotated 
 from fastapi import HTTPException, Depends, status, APIRouter
-from schemas.auth import LoginSchema, Token, UserCreate,UserResponse
+from fastapi.security import OAuth2PasswordRequestForm
+from schemas.auth import Token, UserCreate,UserResponse
 from databases import get_session, Session
 from services.user_services import create_user
 
@@ -20,9 +21,9 @@ router = APIRouter(
 )
 
 
-@router.post("/login")
-async def login_for_access_token(login_data: LoginSchema, db: SessionDep):
-    user = authenticate_user(db, login_data.email, login_data.password)
+@router.post("/token")
+async def login_for_access_token(login_data: Annotated[OAuth2PasswordRequestForm, Depends()], db: SessionDep):
+    user = authenticate_user(db, login_data.username, login_data.password)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

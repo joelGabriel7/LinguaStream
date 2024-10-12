@@ -1,3 +1,4 @@
+from typing import  Optional
 from fastapi import HTTPException, status, Depends
 from sqlmodel import Session, select
 from fastapi.security import OAuth2PasswordBearer
@@ -7,6 +8,7 @@ from datetime import datetime, timedelta, timezone
 from dotenv import load_dotenv
 import os
 import jwt
+from databases import get_session
 from models.users import Users
 from schemas.auth import TokenData
 
@@ -97,8 +99,8 @@ def create_refresh_token(data: dict):
 
 
 async def get_current_user(
-    token: str = Depends(oauth2_scheme), db: Session = Depends()
-):
+    token: str = Depends(oauth2_scheme), db: Session = Depends(get_session)
+) -> Optional[TokenData]:
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -108,11 +110,17 @@ async def get_current_user(
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         email: str = payload.get("email")
         user_id: str = payload.get("id")
+
         if email is None:
             raise credentials_exception
+
+        # Validate the user against the database
+        query = select(Users).where(Users.email == email)
+        user = db.exec(query).first()
+        if not user:
+            raise credentials_exception
+
         token_data = TokenData(id=user_id, email=email)
         return token_data
     except jwt.PyJWTError:
         raise credentials_exception
-
-

@@ -11,10 +11,6 @@ class TokenData(BaseModel):
     email: str
 
 
-class LoginSchema(BaseModel):
-    email: str
-    password: str
-
 
 class UserCreate(BaseModel):
     email: str
