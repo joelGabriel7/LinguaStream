@@ -9,7 +9,7 @@ engine = create_engine(SQLMODEL_DATABASE_URL)
 
 
 def create_db_and_tables():
-    from models.users import Users
+    from models.users import Users  # noqa: F401
     SQLModel.metadata.create_all(engine)
 
 
