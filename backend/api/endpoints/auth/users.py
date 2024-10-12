@@ -6,7 +6,7 @@ from models.users import Users
 from sqlmodel import select,Session
 
 
-user_router = APIRouter()
+user_router = APIRouter(prefix='/user', tags=['Users'])
 UserDep = Annotated[Users, Depends(get_current_user)]
 
 @user_router.get('/me')

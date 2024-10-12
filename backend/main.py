@@ -4,6 +4,7 @@ from typing import Annotated
 from databases import get_session, Session, create_db_and_tables
 from api.endpoints.auth.authentication_endpoint import router as login_router
 from api.endpoints.auth.users import user_router 
+from api.endpoints.languages.languages import languages_router
 
 SessionDep = Annotated[Session,Depends(get_session)]
 
@@ -21,3 +22,4 @@ def hello_world():
 
 app.include_router(login_router)
 app.include_router(user_router)
+app.include_router(languages_router)
