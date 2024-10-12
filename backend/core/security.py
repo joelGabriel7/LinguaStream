@@ -1,5 +1,5 @@
 from fastapi import HTTPException, status, Depends
-from sqlmodel import Session
+from sqlmodel import Session, select
 from fastapi.security import OAuth2PasswordBearer
 from passlib.context import CryptContext
 from datetime import datetime, timedelta, timezone
@@ -7,7 +7,8 @@ from datetime import datetime, timedelta, timezone
 from dotenv import load_dotenv
 import os
 import jwt
-from backend.models.users import Users
+from models.users import Users
+from schemas.auth import TokenData
 
 load_dotenv()
 
@@ -38,7 +39,9 @@ def get_password_hash(password):
 
 
 def get_user(db: Session, email: str):
-    return db.exec(Users).filter(Users.email == email).first()
+    query = select(Users).where(Users.email == email)
+    result = db.exec(query)  # Ejecuta la consulta
+    return result.first()
 
 
 """  authenticated user  """
@@ -103,12 +106,13 @@ async def get_current_user(
     )
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        email: str = payload.get("sub")
+        email: str = payload.get("email")
+        user_id: str = payload.get("id")
         if email is None:
             raise credentials_exception
+        token_data = TokenData(id=user_id, email=email)
+        return token_data
     except jwt.PyJWTError:
         raise credentials_exception
-    user = get_user(db, email=email)
-    if user is None:
-        raise credentials_exception
-    return user
+
+
