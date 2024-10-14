@@ -11,16 +11,24 @@ class TokenData(BaseModel):
     email: str
 
 
-
 class UserCreate(BaseModel):
     email: str
     name: str
-    password: str  
-    
+    password: str
+
+
 class UserResponse(BaseModel):
     id: int
     email: str
     name: str
+
+    class Config:
+        from_attributes = True
+
+
+class UserPreferences(BaseModel):
+    source_languages: str
+    target_languages: str
 
     class Config:
         from_attributes = True
