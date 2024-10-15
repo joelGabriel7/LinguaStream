@@ -123,6 +123,6 @@ async def get_current_user(
         token_data = TokenData(id=user_id, email=email)
         return token_data
     except jwt.ExpiredSignatureError:
-        raise TokenExpiredError()
+        raise TokenExpiredError().to_http_exception()
     except jwt.PyJWTError:
         raise credentials_exception

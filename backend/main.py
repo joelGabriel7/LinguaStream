@@ -9,7 +9,7 @@ from api.endpoints.chat.chatbot_endpoint import chatbot
 
 SessionDep = Annotated[Session,Depends(get_session)]
 
-app = FastAPI(title='ChatbotTranslator Docs API')
+app = FastAPI(title='LinguaStream Docs API')
 load_dotenv()
 
 @app.on_event("startup")

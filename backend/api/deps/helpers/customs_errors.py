@@ -1,4 +1,4 @@
-from fastapi import status
+from fastapi import HTTPException, status
 
 
 class CustomWebSocketError(Exception):
@@ -6,6 +6,14 @@ class CustomWebSocketError(Exception):
         self.code = code
         self.reason = reason
         super().__init__(self.reason)
+        
+    def to_http_exception(self) -> HTTPException:
+        """Convierte una excepción WebSocket en una excepción HTTP."""
+        return HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=self.reason,
+            headers={"WWW-Authenticate": "Bearer"},
+        )    
 
 
 class TokenMissingError(CustomWebSocketError):

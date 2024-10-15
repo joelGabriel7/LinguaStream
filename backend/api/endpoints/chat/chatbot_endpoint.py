@@ -11,7 +11,6 @@ from api.deps.helpers.customs_errors import (
     CustomWebSocketError,
     InvalidTokenError,
     TokenExpiredError,
-    TokenMissingError,
 )
 from fastapi import (
     APIRouter,
@@ -23,7 +22,7 @@ from fastapi import (
 )
 
 
-chatbot = APIRouter()
+chatbot = APIRouter(tags=['Chatbot History'])
 manager = ConnectionManager()
 UserDep = Annotated[Users, Depends(get_current_user)]
 SessionDep = Annotated[Session, Depends(get_session)]
@@ -39,7 +38,9 @@ async def chatbotTranslator(
     try:
         #! Preguntamos si el usuario esta autenticado
         if token is None:
-            raise TokenMissingError()
+            await manager.send_message("Token Authentication missing ", websocket)
+            await websocket.close(status.WS_1008_POLICY_VIOLATION)
+            return
         try:
             user = await get_current_user(token=token, db=db)
         except CustomWebSocketError as e:
