@@ -1,8 +1,7 @@
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useState } from 'react'
 import client from '../config/axios'
 import Tostify from '../components/Tostify'
-
 
 const Register = () => {
     const [name, setName] = useState('')
@@ -10,7 +9,7 @@ const Register = () => {
     const [password, setPassword] = useState('')
     const [Repeatpassword, setRepeatPassword] = useState('')
     const [alert, setAlert] = useState({})
-
+    const navigate = useNavigate()
 
     const handlerSubmit = async e => {
         e.preventDefault()
@@ -24,10 +23,35 @@ const Register = () => {
         }
 
         if (password !== Repeatpassword) {
-            console.log('Password no coinciden')
+            setAlert({
+                text: "Password no coinciden",
+                error: true
+            })
             return
         }
 
+        // Request to endpoint
+        const data = {
+            name,
+            email,
+            password
+        }
+        try {
+            await client.post(`/auth/users/`, data)
+            setAlert({
+                text: 'Cuenta creada correctamente',
+                error: false
+            })
+
+            setTimeout(() => {
+                navigate('/')
+            }, 4000);
+        } catch (error) {
+            setAlert({
+                text: error.response.data.detail,
+                error: true
+            })
+        }
     }
 
     return (
