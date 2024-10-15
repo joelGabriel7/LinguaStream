@@ -23,7 +23,7 @@ async def save_languages(db: SessionDep):
     return {"message": "sync succefully"}
 
 
-@languages_router.get("/all", response_model=List[LanguagesResponse], status_code=400)
+@languages_router.get("/all", response_model=List[LanguagesResponse], status_code=200)
 async def get_languages(current_user: UserDep, db: SessionDep):
     if current_user is None:
         raise HTTPException(
