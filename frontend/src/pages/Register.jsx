@@ -1,5 +1,35 @@
 import { Link } from 'react-router-dom'
+import { useState } from 'react'
+import client from '../config/axios'
+import Tostify from '../components/Tostify'
+
+
 const Register = () => {
+    const [name, setName] = useState('')
+    const [email, setEmail] = useState('')
+    const [password, setPassword] = useState('')
+    const [Repeatpassword, setRepeatPassword] = useState('')
+    const [alert, setAlert] = useState({})
+
+
+    const handlerSubmit = async e => {
+        e.preventDefault()
+        if ([name, email, password, Repeatpassword].includes('')) {
+            console.log('')
+            setAlert({
+                text: 'Hay campos vacios',
+                error: true
+            })
+            return
+        }
+
+        if (password !== Repeatpassword) {
+            console.log('Password no coinciden')
+            return
+        }
+
+    }
+
     return (
         <>
             <div>
@@ -8,7 +38,7 @@ const Register = () => {
             </div>
 
             <div className="mt-20 md:mt-5 shadow-lg px-5 py-10 rounded-lg bg-white" >
-                <form action="">
+                <form onSubmit={handlerSubmit}>
                     <p className="text-indigo-600 font-black  text-6xl font-monserrat">
                         Registrate en  <span className='text-black'>LinguaStream</span></p>
 
@@ -25,6 +55,8 @@ const Register = () => {
                             type="text"
                             placeholder='Nombre'
                             className='border w-full font-monserrat p-3 mt-3 bg-gray-50 rounded-xl'
+                            value={name}
+                            onChange={e => setName(e.target.value)}
                         />
                     </div>
                     <div className="my-5">
@@ -38,6 +70,8 @@ const Register = () => {
                             type="email"
                             placeholder='Email'
                             className='border w-full font-monserrat p-3 mt-3 bg-gray-50 rounded-xl'
+                            value={email}
+                            onChange={e => setEmail(e.target.value)}
                         />
                     </div>
                     <div className="my-5">
@@ -48,9 +82,11 @@ const Register = () => {
                         </label>
 
                         <input
-                            type="text"
+                            type="password"
                             placeholder='Password'
                             className='border w-full font-monserrat p-3 mt-3 bg-gray-50 rounded-xl'
+                            value={password}
+                            onChange={e => setPassword(e.target.value)}
                         />
                     </div>
                     <div className="my-5">
@@ -61,9 +97,11 @@ const Register = () => {
                         </label>
 
                         <input
-                            type="text"
+                            type="password"
                             placeholder='Repetir Password'
                             className='border w-full font-monserrat p-3 mt-3 bg-gray-50 rounded-xl'
+                            value={Repeatpassword}
+                            onChange={e => setRepeatPassword(e.target.value)}
                         />
                     </div>
 
@@ -82,6 +120,7 @@ const Register = () => {
 
                 </div>
             </div>
+            {alert && <Tostify message={alert} />}
         </>
     )
 }
