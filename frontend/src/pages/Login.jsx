@@ -9,6 +9,8 @@ const Login = () => {
             </div>
             <div className="mt-20 md:mt-5 shadow-lg px-6 py-10 rounded-lg bg-white ">
                 <form action="">
+                    <p className="text-indigo-600 font-black  text-6xl font-monserrat">
+                        Inicia Sesión en  <span className='text-black'>LinguaStream</span></p>
                     <div className='my-5' >
 
                         <label htmlFor=""
@@ -46,7 +48,7 @@ const Login = () => {
                 <nav className='mt-10 lg:flex lg:justify-between' >
                     <Link
                         className='block font-monserrat text-center my-5 text-gray-500'
-                        to="/register">No tienes una cuenta? <span className='text-black font-bold font-monserrat'>Registrate</span></Link>
+                        to="/register">No tienes una cuenta? <span className='text-indigo-300 font-bold font-monserrat '>Registrate</span></Link>
 
                 </nav>
             </div>
