@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, status
 from typing import Annotated
 from models.users import Users
 from sqlmodel import select, Session
-from services.user_preferences_services import set_preferences_services
+from services.user_preferences_services import set_preferences_services,get_user_preferences
 from schemas.auth import UserPreferences
 
 
@@ -26,3 +26,7 @@ async def current_user_endpoint(
 async def set_preferences(user: UserDep, preferences: UserPreferences, db: SessionDep):
     await set_preferences_services(preferences, user, db)
     return {"message": "Preferences languages set up successfully"}
+
+@user_router.get('/preferences', status_code=status.HTTP_200_OK)
+async def get_user_preferences_endpoint(user: UserDep, db: SessionDep):
+    return await get_user_preferences(user,db)

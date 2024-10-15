@@ -1,4 +1,4 @@
-from fastapi import Depends
+from fastapi import Depends, HTTPException, status
 from core.security import get_current_user
 from databases import Session, get_session
 from typing import Annotated
@@ -10,9 +10,11 @@ SessionDep = Annotated[Session, Depends(get_session)]
 UserDep = Annotated[Users, Depends(get_current_user)]
 
 
-async def set_preferences_services( preferences_schemas: Preferences, current_user: UserDep, db: SessionDep):
+async def set_preferences_services(
+    preferences_schemas: Preferences, current_user: UserDep, db: SessionDep
+):
     """
-    1. Find the user if check has already save preferences
+    1. Find the user in current session and  check if has already save preferences
     2. if doesn't exist, created  and save
     3. if exist, updated
     4. Save preferences
@@ -30,10 +32,21 @@ async def set_preferences_services( preferences_schemas: Preferences, current_us
             target_language=preferences_schemas.target_languages,
         )
         db.add(preferences)
-    #! if exist, updated    
+    #! if exist, updated
     else:
         preferences.source_language = preferences_schemas.source_languages
         preferences.target_language = preferences_schemas.target_languages
     #! Save preferences
     db.commit()
+    return preferences
+
+
+async def get_user_preferences( current_user: UserDep, db: SessionDep):
+    preferences = db.exec(
+        select(UserPreferences).filter_by(user_id=current_user.id)
+    ).first()
+    if not preferences:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Preferences not settings"
+        )
     return preferences
