@@ -17,8 +17,8 @@ def chatbot_ai(user_input: str, target_language: str):
             generation_config=genai.types.GenerationConfig(
                 candidate_count=1,
                 stop_sequences=["x"],
-                max_output_tokens=50,
-                temperature=0.1,
+                max_output_tokens=20,
+                temperature=1.2,
             ),
         )
         # Traducir la respuesta generada al lenguaje objetivo

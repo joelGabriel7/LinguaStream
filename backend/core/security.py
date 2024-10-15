@@ -1,10 +1,10 @@
-from typing import  Optional
+from typing import Optional
 from fastapi import HTTPException, status, Depends
 from sqlmodel import Session, select
 from fastapi.security import OAuth2PasswordBearer
 from passlib.context import CryptContext
 from datetime import datetime, timedelta, timezone
-
+from api.deps.helpers.customs_errors import InvalidTokenError, TokenExpiredError
 from dotenv import load_dotenv
 import os
 import jwt
@@ -112,7 +112,7 @@ async def get_current_user(
         user_id: str = payload.get("id")
 
         if email is None:
-            raise credentials_exception
+            raise InvalidTokenError()
 
         # Validate the user against the database
         query = select(Users).where(Users.email == email)
@@ -122,5 +122,7 @@ async def get_current_user(
 
         token_data = TokenData(id=user_id, email=email)
         return token_data
+    except jwt.ExpiredSignatureError:
+        raise TokenExpiredError()
     except jwt.PyJWTError:
         raise credentials_exception
