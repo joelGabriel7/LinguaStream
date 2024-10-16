@@ -125,4 +125,4 @@ async def get_current_user(
     except jwt.ExpiredSignatureError:
         raise TokenExpiredError().to_http_exception()
     except jwt.PyJWTError:
-        raise credentials_exception
+        raise TokenExpiredError().to_http_exception()

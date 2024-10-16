@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import useAuth from '../hooks/useAuth'
 import { useState } from 'react'
 import Tostify from '../components/Tostify'
@@ -10,7 +10,7 @@ const Login = () => {
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
     const [alert, setAlert] = useState({})
-
+    const navigate = useNavigate()
     const { auth } = useAuth()
 
 
@@ -33,12 +33,14 @@ const Login = () => {
                 password
             });
             const { data } = await client.post('/auth/token/', value)
-            localStorage.setItem("token", data.access_token)
+            localStorage.setItem("access_token_LSAI", data.access_token)
             setAlert({
                 text: 'Usuario Authenticado',
                 error: false
             });
-
+            setTimeout(() => {
+                navigate('/profile')
+            }, 2000);
         } catch (error) {
             console.log(error.response.data)
             setAlert({

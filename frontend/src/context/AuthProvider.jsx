@@ -1,11 +1,42 @@
 import { useState, useEffect, createContext } from 'react';
+import client from '../config/axios';
+import Tostify from '../components/Tostify';
+
 
 const AuthContext = createContext()
 
 const AuthProvider = ({ children }) => {
     const [auth, setAuth] = useState({})
+    const [alert, setAlert] = useState({})
+    
+    useEffect(() => {
+      const authenticatedUser = async () => {
+        const token = localStorage.getItem('access_token_LSAI')
+        if(!token) return
+        const config = {
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`
+            }
+        }
 
+        try {   
+
+            const {data } = await client('/user/me',config)
+            setAuth(data)
+        } catch (error) {
+            setAlert({
+                text: error.response.data.detail,
+                error: true
+            });
+            setAuth({})
+        }
+      }
+      authenticatedUser()
+    }, [])
+    
     return (
+        
         <AuthContext.Provider
         value={{
             auth,
@@ -13,7 +44,7 @@ const AuthProvider = ({ children }) => {
         }}
         >
             {children}
-            
+            {alert && <Tostify message={alert} />}
         </AuthContext.Provider>
     )
 }
