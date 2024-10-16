@@ -39,7 +39,7 @@ const Login = () => {
                 error: false
             });
             setTimeout(() => {
-                navigate('/profile')
+                navigate('/admin')
             }, 2000);
         } catch (error) {
             console.log(error.response.data)

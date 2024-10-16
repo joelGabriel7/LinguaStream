@@ -8,40 +8,46 @@ const AuthContext = createContext()
 const AuthProvider = ({ children }) => {
     const [auth, setAuth] = useState({})
     const [alert, setAlert] = useState({})
-    
+    const [loading, setLoading] = useState(true)
+
     useEffect(() => {
-      const authenticatedUser = async () => {
-        const token = localStorage.getItem('access_token_LSAI')
-        if(!token) return
-        const config = {
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${token}`
+        const authenticatedUser = async () => {
+            const token = localStorage.getItem('access_token_LSAI')
+            if (!token) {
+                setLoading(false)
+                return
             }
-        }
+            const config = {
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`
+                }
+            }
 
-        try {   
+            try {
 
-            const {data } = await client('/user/me',config)
-            setAuth(data)
-        } catch (error) {
-            setAlert({
-                text: error.response.data.detail,
-                error: true
-            });
-            setAuth({})
+                const { data } = await client('/user/me', config)
+                setAuth(data)
+            } catch (error) {
+                setAlert({
+                    text: error.response.data.detail,
+                    error: true
+                });
+                setAuth({})
+            }
+            setLoading(false)
         }
-      }
-      authenticatedUser()
+        authenticatedUser()
     }, [])
-    
+
     return (
-        
+
         <AuthContext.Provider
-        value={{
-            auth,
-            setAuth
-        }}
+            value={{
+                auth,
+                setAuth,
+                loading
+            }}
         >
             {children}
             {alert && <Tostify message={alert} />}
