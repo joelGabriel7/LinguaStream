@@ -1,21 +1,65 @@
 import { Link } from 'react-router-dom'
 import useAuth from '../hooks/useAuth'
+import { useState } from 'react'
+import Tostify from '../components/Tostify'
+import client from '../config/axios'
+
+
 
 const Login = () => {
+    const [email, setEmail] = useState('')
+    const [password, setPassword] = useState('')
+    const [alert, setAlert] = useState({})
 
     const { auth } = useAuth()
-    console.log(auth)
+
+
+    const handleSubmit = async e => {
+        e.preventDefault();
+
+        const fields = [email, password].includes('')
+        if (fields) {
+            setAlert({
+                text: 'Todos los campos son necesarios',
+                error: true
+            });
+            return
+        }
+
+        // Request to endpoint
+        try {
+            const value = new URLSearchParams({
+                username: email, 
+                password
+            });
+            const { data } = await client.post('/auth/token/', value)
+            localStorage.setItem("token", data.access_token)
+            setAlert({
+                text: 'Usuario Authenticado',
+                error: false
+            });
+
+        } catch (error) {
+            console.log(error.response.data)
+            setAlert({
+                text: error.response.data.message,
+                error: true
+            });
+        }
+    }
+
+
 
     return (
         <>
             <div>
                 <h1 className="text-indigo-600 font-black text-6xl font-monserrat">
-                    Conéctate con el mundo a través de <span className='text-black'>LinguaStream</span></h1>
+                    Conéctate con el mundo a través de <span className='text-black'>LinguaStreamAI</span></h1>
             </div>
             <div className="mt-20 md:mt-5 shadow-lg px-6 py-10 rounded-lg bg-white ">
-                <form action="">
+                <form onSubmit={handleSubmit}>
                     <p className="text-indigo-600 font-black  text-6xl font-monserrat">
-                        Inicia Sesión en  <span className='text-black'>LinguaStream</span></p>
+                        Inicia Sesión en  <span className='text-black'>LinguaStreamAI</span></p>
                     <div className='my-5' >
 
                         <label htmlFor=""
@@ -28,6 +72,8 @@ const Login = () => {
                             type="email"
                             placeholder='Email'
                             className='border w-full p-3 mt-3 font-monserrat bg-gray-50 rounded-xl'
+                            value={email}
+                            onChange={e => setEmail(e.target.value)}
                         />
                     </div>
                     <div className='my-5' >
@@ -41,6 +87,8 @@ const Login = () => {
                             type="password"
                             placeholder='Password'
                             className='border w-full p-3 mt-3 font-monserrat bg-gray-50 rounded-xl'
+                            value={password}
+                            onChange={e => setPassword(e.target.value)}
                         />
                     </div>
                     <input
@@ -57,6 +105,7 @@ const Login = () => {
 
                 </nav>
             </div>
+            {alert && <Tostify message={alert} />}
         </>
     )
 }

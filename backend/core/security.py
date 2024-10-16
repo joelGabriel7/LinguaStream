@@ -21,7 +21,7 @@ REFRESH_TOKEN_EXPIRATION = 60 * 24
 
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/token")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/token/")
 
 """Verify the passwod is correct"""
 
