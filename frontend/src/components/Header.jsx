@@ -5,7 +5,7 @@ const Header = () => {
     return (
         <>
             <header className="py-10 bg-indigo-600">
-                <div className="container mx-auto flex flex-col lg:flex-row justify-between items-center">
+                <div className="container mx-auto max-w-screen-xl flex flex-col lg:flex-row justify-between items-center">
 
                     <h1 className="text-center font-bold font-monserrat text-2xl text-indigo-200"> <span className="text-white font-black">LinguaStreamAI</span> – Your Multilingual ChatBot Solution</h1>
 

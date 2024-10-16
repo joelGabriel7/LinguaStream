@@ -33,12 +33,7 @@ export const AuthProvider = ({ children }) => {
                     name: data.name,
                     email: data.email
                 })
-                console.log({
-                    access_token: token,
-                    id: data.id,
-                    name: data.name,
-                    email: data.email
-                })
+
             } catch (error) {
                 setAlert({
                     text: error.response.data.detail,
@@ -50,7 +45,6 @@ export const AuthProvider = ({ children }) => {
         }
         authenticatedUser()
     }, [])
-    console.log('Se salio del UseEffect')
     const logout = () => {
         localStorage.removeItem('access_token_LSAI')
         setAuth({})
@@ -58,17 +52,21 @@ export const AuthProvider = ({ children }) => {
 
     return (
 
-        <AuthContext.Provider
-            value={{
-                auth,
-                setAuth,
-                loading,
-                logout,
-            }}
-        >
-            {children}
-            {alert && <Tostify message={alert} />}
-        </AuthContext.Provider>
+        <>
+            <AuthContext.Provider
+
+                value={{
+                    auth,
+                    setAuth,
+                    loading,
+                    logout,
+                }}
+            >
+                {alert && <Tostify message={alert} />}
+                {children}
+            </AuthContext.Provider>
+
+        </>
     )
 }
 

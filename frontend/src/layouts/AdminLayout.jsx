@@ -12,7 +12,7 @@ export const AdminLayout = () => {
         <>
             <Header />
             {auth?.access_token ? (
-                <main className="container mx-auto mt-10">
+                <main className="container mx-auto mt-10 max-w-screen-xl">
                     <Outlet />
                 </main>
             ) : <Navigate to={"/"} />}
