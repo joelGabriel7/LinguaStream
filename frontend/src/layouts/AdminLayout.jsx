@@ -5,22 +5,19 @@ import Footer from "../components/Footer";
 
 
 
-const AdminLayout = () => {
+export const AdminLayout = () => {
     const { auth, loading } = useAuth();
-    if (loading) return 'Cargando...'
+    if (loading) return '<h1>Cargando...<h1/>';
     return (
         <>
-
             <Header />
-                 {auth ? (
-                    <main className="container mx-auto mt-10">
-
-                        <Outlet />
-                    </main>
-                ) : <Navigate to={"/"} />}
+            {auth?.access_token ? (
+                <main className="container mx-auto mt-10">
+                    <Outlet />
+                </main>
+            ) : <Navigate to={"/"} />}
             <Footer />
         </>
     )
 }
 
-export default AdminLayout

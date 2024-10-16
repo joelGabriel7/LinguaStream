@@ -3,9 +3,9 @@ import client from '../config/axios';
 import Tostify from '../components/Tostify';
 
 
-const AuthContext = createContext()
+export const AuthContext = createContext()
 
-const AuthProvider = ({ children }) => {
+export const AuthProvider = ({ children }) => {
     const [auth, setAuth] = useState({})
     const [alert, setAlert] = useState({})
     const [loading, setLoading] = useState(true)
@@ -27,7 +27,18 @@ const AuthProvider = ({ children }) => {
             try {
 
                 const { data } = await client('/user/me', config)
-                setAuth(data)
+                setAuth({
+                    access_token: token,
+                    id: data.id,
+                    name: data.name,
+                    email: data.email
+                })
+                console.log({
+                    access_token: token,
+                    id: data.id,
+                    name: data.name,
+                    email: data.email
+                })
             } catch (error) {
                 setAlert({
                     text: error.response.data.detail,
@@ -39,6 +50,11 @@ const AuthProvider = ({ children }) => {
         }
         authenticatedUser()
     }, [])
+    console.log('Se salio del UseEffect')
+    const logout = () => {
+        localStorage.removeItem('access_token_LSAI')
+        setAuth({})
+    }
 
     return (
 
@@ -46,7 +62,8 @@ const AuthProvider = ({ children }) => {
             value={{
                 auth,
                 setAuth,
-                loading
+                loading,
+                logout,
             }}
         >
             {children}
@@ -55,8 +72,3 @@ const AuthProvider = ({ children }) => {
     )
 }
 
-export {
-    AuthProvider
-}
-
-export default AuthContext

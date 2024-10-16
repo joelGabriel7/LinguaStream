@@ -11,7 +11,7 @@ const Login = () => {
     const [password, setPassword] = useState('')
     const [alert, setAlert] = useState({})
     const navigate = useNavigate()
-    const { auth } = useAuth()
+    const {  setAuth } = useAuth()
 
 
     const handleSubmit = async e => {
@@ -29,20 +29,14 @@ const Login = () => {
         // Request to endpoint
         try {
             const value = new URLSearchParams({
-                username: email, 
+                username: email,
                 password
             });
             const { data } = await client.post('/auth/token/', value)
             localStorage.setItem("access_token_LSAI", data.access_token)
-            setAlert({
-                text: 'Usuario Authenticado',
-                error: false
-            });
-            setTimeout(() => {
-                navigate('/admin')
-            }, 2000);
+            setAuth({access_token: data.access_token})
+            navigate('/admin')
         } catch (error) {
-            console.log(error.response.data)
             setAlert({
                 text: error.response.data.message,
                 error: true
