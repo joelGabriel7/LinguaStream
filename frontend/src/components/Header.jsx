@@ -7,16 +7,15 @@ const Header = () => {
     const [isModalOpen, setIsModalOpen] = useState(false)
 
     const handleModalOpen = () => {
-        setIsModalOpen(true); // Abrir modal
+        setIsModalOpen(true); 
     };
 
     const handleModalClose = () => {
-        setIsModalOpen(false); // Cerrar modal
+        setIsModalOpen(false); 
     };
 
     const handleUpdateSuccess = () => {
         setIsModalOpen(false);
-        // Aquí puedes agregar cualquier lógica adicional que necesites después de una actualización exitosa
     };
 
     return (
