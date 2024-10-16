@@ -1,7 +1,24 @@
 import { Link } from "react-router-dom"
 import useAuth from "../hooks/useAuth";
+import UserProfileModal from "./UserProfile";
+import { useState } from "react";
 const Header = () => {
     const { logout } = useAuth()
+    const [isModalOpen, setIsModalOpen] = useState(false)
+
+    const handleModalOpen = () => {
+        setIsModalOpen(true); // Abrir modal
+    };
+
+    const handleModalClose = () => {
+        setIsModalOpen(false); // Cerrar modal
+    };
+
+    const handleUpdateSuccess = () => {
+        setIsModalOpen(false);
+        // Aquí puedes agregar cualquier lógica adicional que necesites después de una actualización exitosa
+    };
+
     return (
         <>
             <header className="py-10 bg-indigo-600">
@@ -10,8 +27,12 @@ const Header = () => {
                     <h1 className="text-center font-bold font-monserrat text-2xl text-indigo-200"> <span className="text-white font-black">LinguaStreamAI</span> – Your Multilingual ChatBot Solution</h1>
 
                     <nav className="flex  flex-col items-center lg:flex-row gap-4 mt-5 lg:mt-0 ">
-                        <Link to={"/profile"} className="text-white text-sm font-bold uppercase font-monserrat">User profile</Link>
-
+                        <button
+                            onClick={handleModalOpen}
+                            className="text-white text-sm font-bold uppercase font-monserrat"
+                        >
+                            Profile
+                        </button>
                         <button
                             type="button"
                             className="text-white text-sm font-bold uppercase font-monserrat"
@@ -22,6 +43,13 @@ const Header = () => {
                 </div>
 
             </header>
+
+            {isModalOpen && (
+                <UserProfileModal
+                    handleClose={handleModalClose}
+                    onUpdateSuccess={handleUpdateSuccess}
+                />
+            )}
         </>
     )
 }

@@ -11,7 +11,7 @@ const Login = () => {
     const [password, setPassword] = useState('')
     const [alert, setAlert] = useState({})
     const navigate = useNavigate()
-    const {  setAuth } = useAuth()
+    const { setAuth } = useAuth()
 
 
     const handleSubmit = async e => {
@@ -34,7 +34,7 @@ const Login = () => {
             });
             const { data } = await client.post('/auth/token/', value)
             localStorage.setItem("access_token_LSAI", data.access_token)
-            setAuth({access_token: data.access_token})
+            setAuth({ access_token: data.access_token })
             navigate('/admin')
         } catch (error) {
             setAlert({
@@ -54,6 +54,7 @@ const Login = () => {
             </div>
             <div className="mt-20 md:mt-5 shadow-lg px-6 py-10 rounded-lg bg-white ">
                 <form onSubmit={handleSubmit}>
+                {alert && <Tostify message={alert} />}
                     <p className="text-indigo-600 font-black  text-6xl font-monserrat">
                         Inicia Sesión en  <span className='text-black'>LinguaStreamAI</span></p>
                     <div className='my-5' >
@@ -81,6 +82,7 @@ const Login = () => {
                         </label>
                         <input
                             type="password"
+                            autoComplete='true'
                             placeholder='Password'
                             className='border w-full p-3 mt-3 font-monserrat bg-gray-50 rounded-xl'
                             value={password}
@@ -101,7 +103,7 @@ const Login = () => {
 
                 </nav>
             </div>
-            {alert && <Tostify message={alert} />}
+
         </>
     )
 }

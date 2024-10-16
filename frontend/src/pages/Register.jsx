@@ -56,12 +56,14 @@ const Register = () => {
 
     return (
         <>
+            
             <div>
                 <h1 className="text-indigo-600 font-black  text-6xl font-monserrat">
                     Explora nuevos horizontes lingüísticos con <span className='text-black'>LinguaStream</span></h1>
             </div>
 
             <div className="mt-20 md:mt-5 shadow-lg px-5 py-10 rounded-lg bg-white" >
+            {alert && <Tostify message={alert} />}
                 <form onSubmit={handlerSubmit}>
                     <p className="text-indigo-600 font-black  text-6xl font-monserrat">
                         Registrate en  <span className='text-black'>LinguaStream</span></p>
@@ -144,7 +146,7 @@ const Register = () => {
 
                 </div>
             </div>
-            {alert && <Tostify message={alert} />}
+
         </>
     )
 }
