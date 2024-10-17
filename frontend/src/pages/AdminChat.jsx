@@ -7,7 +7,6 @@ import {
     AlertTitle,
 } from "@/components/ui/alert"
 import {  useToast } from "@/hooks/use-toast"
-import { ToastAction } from "@/components/ui/toast"
 
 
 import useAuth from "@/hooks/useAuth";
@@ -36,7 +35,7 @@ const AdminChat = () => {
             return () => clearTimeout(timer)
         }
 
-    }, [alert])
+    }, [auth,alert])
 
 
     const handlerSubmit = async e => {
@@ -46,7 +45,7 @@ const AdminChat = () => {
                 variant: "destructive",
                 title: "Message cannot be empty",
                 description: "Please enter a message before sending",
-                action: <ToastAction altText="Try again">Try again</ToastAction>,
+                duration: 3000
             })
         }
     }

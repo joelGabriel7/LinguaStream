@@ -1,13 +1,14 @@
 import { useState, useEffect, createContext } from 'react';
-import { Toaster } from "@/components/ui/toaster"
 import client from '../config/axios';
-
+import { Toaster } from "@/components/ui/toaster"
+import { useToast } from "@/hooks/use-toast"
 
 export const AuthContext = createContext()
 
 export const AuthProvider = ({ children }) => {
     const [auth, setAuth] = useState({})
     const [loading, setLoading] = useState(true)
+    const { toast } = useToast()
 
     useEffect(() => {
         const authenticatedUser = async () => {
@@ -36,10 +37,14 @@ export const AuthProvider = ({ children }) => {
                 })
 
             } catch (error) {
-                setAlert({
-                    text: error.response.data.detail,
-                    error: true
-                });
+                if (error.response && error.response.status === 401) {
+                    toast({
+                        variant: "destructive",
+                        title: "Session expired",
+                        description: "Your session has expired. Please log in again.",
+                        duration: 3000,
+                    });
+                }
                 setAuth({})
             }
             setLoading(false)
