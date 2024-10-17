@@ -1,24 +1,26 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useLocation } from "react-router-dom";
 import { AlertCircle } from "lucide-react"
+import { useToast } from "@/hooks/use-toast"
 import {
     Alert,
     AlertDescription,
     AlertTitle,
 } from "@/components/ui/alert"
-import {  useToast } from "@/hooks/use-toast"
-
-
 import useAuth from "@/hooks/useAuth";
 
+
+
 const AdminChat = () => {
-    const [showAlert, setShowAlert] = useState(false)
-    const [message, setMessage] = useState('')
-    const [preferencesSet, setPreferencesSet] = useState(false)
-    const location = useLocation()
+    const [showAlert, setShowAlert] = useState(false);
+    const [message, setMessage] = useState('');
+    const [preferencesSet, setPreferencesSet] = useState(false);
+    const [messages, setMessages] = useState([]);
+    const location = useLocation();
     const { alert } = location.state || {}
-    const { auth } = useAuth()
-    const { toast } = useToast()
+    const { auth } = useAuth();
+    const { toast } = useToast();
+    const ws = useRef(null)
 
     useEffect(() => {
 
@@ -35,7 +37,36 @@ const AdminChat = () => {
             return () => clearTimeout(timer)
         }
 
-    }, [auth,alert])
+    }, [auth, alert])
+    useEffect(() => {
+        if (auth?.access_token) {
+            ws.current = new WebSocket(`${import.meta.env.VITE_BACKEND_URL_WS}/ws/chatbot/?token=${auth.access_token}`)
+
+            ws.current.onopen = () => {
+                console.log('Websocket connected')
+                setMessages((prev) => [...prev]);
+            };
+
+            ws.current.onmessage = (event) => {
+                const response = event.data;
+                console.log(`Response: ${response}`)
+                setMessages((prev) => [
+                    ...prev,
+                    { message: response, isServerResponse: true } // Marcar como respuesta del servidor
+                ]);
+            };
+
+            ws.current.onclose = () => {
+                console.log('websocket closed')
+                setMessages((prev) => [...prev,]);
+            };
+
+            return () => {
+                if (ws.current) ws.current.close();
+            };
+        }
+
+    }, [auth?.access_token])
 
 
     const handlerSubmit = async e => {
@@ -47,9 +78,52 @@ const AdminChat = () => {
                 description: "Please enter a message before sending",
                 duration: 3000
             })
+            return
         }
+
+        const data = {
+            message,
+            target_language: auth?.preferences?.target_language || 'en',
+            isServerResponse: false
+        }
+
+        if (ws.current && ws.current.readyState === WebSocket.OPEN) {
+            ws.current.send(JSON.stringify(data));
+            setMessages((prev) => [...prev, data]); // Añadir el mensaje enviado al historial
+            // setMessage("");
+        } else {
+            console.log("WebSocket is not open");
+        }
+
     }
 
+    const MessageContainer = ({ messages }) => {
+        return (
+            <div className="flex flex-col gap-4 p-4 max-w-2xl mx-auto">
+                {messages.map((msg, index) => (
+                    <div
+                        key={index}
+                        className={`flex ${msg.isServerResponse ? 'justify-start' : 'justify-end'}`}
+                    >
+                        <div
+                            className={`
+                                max-w-[70%] p-3 rounded-lg
+                                ${msg.isServerResponse 
+                                    ? 'bg-gray-100 text-gray-800 rounded-tl-none' 
+                                    : 'bg-indigo-500 text-white rounded-tr-none ml-auto'
+                                }
+                            `}
+                        >
+                            <p>{msg.message}</p>
+                        </div>
+                    </div>
+                ))}
+            </div>
+        );
+    };
+    
+    
+        
 
     return (
         <div className="flex flex-col h-screen justify-center items-center p-4">
@@ -76,19 +150,7 @@ const AdminChat = () => {
                 </div>
 
                 {/* Messages Area */}
-                <div className="space-y-4">
-                    {/* Example Messages */}
-                    <div className="flex">
-                        <div className="bg-indigo-500 text-white p-3 rounded-lg max-w-xs">
-                            Hello! How can I assist you today?
-                        </div>
-                    </div>
-                    <div className="flex justify-end">
-                        <div className="bg-gray-300 text-gray-800 p-3 rounded-lg max-w-xs">
-                            I need help with my account.
-                        </div>
-                    </div>
-                </div>
+                <MessageContainer messages={messages} />
             </div>
 
             {/* Input Area */}

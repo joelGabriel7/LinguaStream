@@ -228,7 +228,7 @@ const UserProfileModal = ({ handleClose }) => {
                                 >
                                     <option value="">Select a language</option>
                                     {languages.map((lang) => (
-                                        <option key={lang.id} value={lang.code}>
+                                        <option key={lang.id} value={lang.language_code}>
                                             {lang.name}
                                         </option>
                                     ))}
@@ -246,7 +246,8 @@ const UserProfileModal = ({ handleClose }) => {
                                 >
                                     <option value="">Select a language</option>
                                     {languages.map((lang) => (
-                                        <option key={lang.id} value={lang.code}>
+                                        
+                                        <option key={lang.id} value={lang.language_code}>
                                             {lang.name}
                                         </option>
                                     ))}
