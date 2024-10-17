@@ -49,14 +49,14 @@ const Login = () => {
     return (
         <>
             <div>
-                <h1 className="text-indigo-600 font-black text-6xl font-monserrat">
-                    Conéctate con el mundo a través de <span className='text-black'>LinguaStreamAI</span></h1>
+                <h1 className="text-indigo-600 font-black text-5xl font-monserrat">
+                Connect with the world through <span className='text-black'>LinguaStreamAI</span></h1>
             </div>
             <div className="mt-20 md:mt-5 shadow-lg px-6 py-10 rounded-lg bg-white ">
                 <form onSubmit={handleSubmit}>
                 {alert && <Tostify message={alert} />}
-                    <p className="text-indigo-600 font-black  text-6xl font-monserrat">
-                        Inicia Sesión en  <span className='text-black'>LinguaStreamAI</span></p>
+                    <p className="text-indigo-600 font-black  text-5xl font-monserrat">
+                        Sign in   <span className='text-black'>LinguaStreamAI</span></p>
                     <div className='my-5' >
 
                         <label htmlFor=""
@@ -91,7 +91,7 @@ const Login = () => {
                     </div>
                     <input
                         type="submit"
-                        value="Iniciar Sesión"
+                        value="Sign in"
                         className='bg-indigo-700 w-full font-monserrat p-3 px-10 rounded-xl text-white uppercase font-bold hover:cursor-pointer 
                         hover:bg-indigo-800 md:w-auto'
                     />
@@ -99,7 +99,7 @@ const Login = () => {
                 <nav className='mt-10 lg:flex lg:justify-between' >
                     <Link
                         className='block font-monserrat text-center my-5 text-gray-500'
-                        to="/register">No tienes una cuenta? <span className='text-indigo-300 font-bold font-monserrat '>Registrate</span></Link>
+                        to="/register">You don't have account? <span className='text-indigo-300 font-bold font-monserrat '>Sign Up</span></Link>
 
                 </nav>
             </div>

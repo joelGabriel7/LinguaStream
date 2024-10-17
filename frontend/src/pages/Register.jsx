@@ -16,7 +16,7 @@ const Register = () => {
         if ([name, email, password, Repeatpassword].includes('')) {
             console.log('')
             setAlert({
-                text: 'Hay campos vacios',
+                text: 'Fields required',
                 error: true
             })
             return
@@ -24,7 +24,7 @@ const Register = () => {
 
         if (password !== Repeatpassword) {
             setAlert({
-                text: "Password no coinciden",
+                text: "Password don't match",
                 error: true
             })
             return
@@ -39,7 +39,7 @@ const Register = () => {
         try {
             await client.post(`/auth/users/`, data)
             setAlert({
-                text: 'Cuenta creada correctamente',
+                text: 'Accoutn create succefully',
                 error: false
             })
 
@@ -56,17 +56,17 @@ const Register = () => {
 
     return (
         <>
-            
+
             <div>
-                <h1 className="text-indigo-600 font-black  text-6xl font-monserrat">
-                    Explora nuevos horizontes lingüísticos con <span className='text-black'>LinguaStream</span></h1>
+                <h1 className="text-indigo-600 font-black  text-5xl font-monserrat">
+                    Explore new linguistic horizons with <span className='text-black'>LinguaStreamAI</span></h1>
             </div>
 
             <div className="mt-20 md:mt-5 shadow-lg px-5 py-10 rounded-lg bg-white" >
-            {alert && <Tostify message={alert} />}
+                {alert && <Tostify message={alert} />}
                 <form onSubmit={handlerSubmit}>
-                    <p className="text-indigo-600 font-black  text-6xl font-monserrat">
-                        Registrate en  <span className='text-black'>LinguaStream</span></p>
+                    <p className="text-indigo-600 font-black  text-5xl font-monserrat">
+                        Sign Up  <span className='text-black'>LinguaStreamAI</span></p>
 
                     <div className="my-5">
 
@@ -74,12 +74,12 @@ const Register = () => {
                         <label htmlFor=""
                             className='text-gray-600 font-monserrat block text-xl font-bold'
                         >
-                            Nombre
+                            Name
                         </label>
 
                         <input
                             type="text"
-                            placeholder='Nombre'
+                            placeholder='Name'
                             className='border w-full font-monserrat p-3 mt-3 bg-gray-50 rounded-xl'
                             value={name}
                             onChange={e => setName(e.target.value)}
@@ -119,7 +119,7 @@ const Register = () => {
                         <label htmlFor=""
                             className='text-gray-600 font-monserrat block text-xl font-bold'
                         >
-                            Repetir Password
+                            Repeat Password
                         </label>
 
                         <input
@@ -133,7 +133,7 @@ const Register = () => {
 
                     <input
                         type="submit"
-                        value='Crear Cuenta'
+                        value='Create Account'
                         className="bg-indigo-700 font-monserrat w-full p-3 px-10 rounded-xl text-white uppercase font-bold hover:cursor-pointer 
                         hover:bg-indigo-800 md:w-auto"
                     />
@@ -142,7 +142,7 @@ const Register = () => {
                 <div className="mt-5 lg:flex lg:justify-between">
                     <Link
                         className='block text-center  font-monserrat my-5 text-gray-500'
-                        to="/">tienes una cuenta? <span className='text-indigo-300 font-bold'>Inicia Sesión</span></Link>
+                        to="/">Do you have account? <span className='text-indigo-300 font-bold'>Sign in</span></Link>
 
                 </div>
             </div>
