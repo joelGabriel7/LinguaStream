@@ -1,77 +1,119 @@
 import { useState, useEffect } from "react";
 import client from "../config/axios";
 import useAuth from "../hooks/useAuth";
-import Tostify from '../components/Tostify'
+import Tostify from '../components/Tostify';
+
+const LoadingSpinner = () => (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+        <div className="bg-white p-8 rounded-lg shadow-lg flex flex-col items-center space-y-4">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+            <div className="text-gray-700 font-monserrat text-sm">Loading your preferences...</div>
+        </div>
+    </div>
+);
 
 const UserProfileModal = ({ handleClose }) => {
     const [languages, setLanguages] = useState([]);
     const [selectedSourceLanguage, setSelectedSourceLanguage] = useState('');
     const [selectedTargetLanguage, setSelectedTargetLanguage] = useState('');
-    const [alert, setAlert] = useState({});  // Cambiado a null inicialmente
+    const [alert, setAlert] = useState({});
+    const [isLoading, setIsLoading] = useState(true);
     const { auth, setAuth } = useAuth();
-    const { name, email, } = auth;
 
-    const token = localStorage.getItem('access_token_LSAI');
-    const config = {
+    const getConfig = () => ({
         headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`
+            Authorization: `Bearer ${localStorage.getItem('access_token_LSAI')}`
+        }
+    });
+
+    const loadUserData = async () => {
+        try {
+            const response = await client.get('/user/me', getConfig());
+            setAuth(prevAuth => ({
+                ...prevAuth,
+                ...response.data
+            }));
+        } catch (error) {
+            setAlert({
+                text: 'Error loading user data',
+                error: true
+            });
+        }
+    };
+
+    const loadLanguages = async () => {
+        try {
+            const response = await client.get('/languages/all', getConfig());
+            setLanguages(response.data);
+        } catch (error) {
+            setAlert({
+                text: 'Error loading languages',
+                error: true
+            });
+        }
+    };
+
+    const loadPreferences = async () => {
+        try {
+            const response = await client.get('/user/preferences', getConfig());
+            if (response.data) {
+                setSelectedSourceLanguage(response.data.source_language);
+                setSelectedTargetLanguage(response.data.target_language);
+            }
+        } catch (error) {
+            setAlert({
+                text: error.response.data.detail,
+                error: true
+            });
         }
     };
 
     useEffect(() => {
-        const fetchInitialData = async () => {
+        const initializeData = async () => {
+            setIsLoading(true);
             try {
-                const [languagesResponse, preferencesResponse, userResponse] = await Promise.all([
-                    client.get('/languages/all', config),
-                    client.get('/user/preferences', config),
-                    client('/user/me', config)
-                ]);
-
-                setAuth(prevAuth => ({
-                    ...prevAuth,
-                    ...userResponse.data
-                }))
-
-                setLanguages(languagesResponse.data);
-                if (preferencesResponse.data) {
-                    setSelectedSourceLanguage(preferencesResponse.data.source_language);
-                    setSelectedTargetLanguage(preferencesResponse.data.target_language);
-                } else {
-                    setSelectedSourceLanguage(languagesResponse.data[0]?.code || '');
-                    setSelectedTargetLanguage(languagesResponse.data[1]?.code || '');
-                }
+                // Cargamos los datos del usuario y los idiomas
+                await loadUserData();
+                await loadLanguages();
             } catch (error) {
-                setAlert({
-                    text: 'Error al cargar las preferencias',
-                    error: true
-                });
+                console.error('Error loading initial data:', error);
+            } finally {
+                setIsLoading(false);
             }
         };
 
-        fetchInitialData();
-    }, [setAuth]);
+        initializeData();
+    }, []);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        if ([selectedSourceLanguage, selectedTargetLanguage].includes('')) {
+        if (!selectedSourceLanguage || !selectedTargetLanguage) {
             setAlert({
-                text: 'Configura las preferencias de idiomas por favor',
+                text: 'Please select both source and target languages',
                 error: true
             });
             return;
         }
 
-        const data = {
-            source_languages: selectedSourceLanguage,
-            target_languages: selectedTargetLanguage
-        };
+        if (selectedSourceLanguage === selectedTargetLanguage) {
+            setAlert({
+                text: 'Source and target languages must be different',
+                error: true
+            });
+            return;
+        }
+
+        setIsLoading(true);
 
         try {
-            const response = await client.post('/user/preferences', data, config);
+            const response = await client.post('/user/preferences', {
+                source_languages: selectedSourceLanguage,
+                target_languages: selectedTargetLanguage
+            }, getConfig());
 
-            // Actualizar el estado global del usuario
+            // Actualizamos el estado global
             setAuth(prev => ({
                 ...prev,
                 preferences: {
@@ -80,34 +122,42 @@ const UserProfileModal = ({ handleClose }) => {
                 }
             }));
 
-            // Mostrar mensaje de éxito
             setAlert({
-                text: response.data.message,
+                text: response.data.message || 'Preferences updated successfully',
                 error: false
             });
 
-            // Cerrar modal después de un delay
             setTimeout(() => {
                 handleClose();
-            }, 4000);
+            }, 2000);
 
         } catch (error) {
-            console.log(error)
             setAlert({
-                text: 'Error al actualizar las preferencias',
+                text: 'Error updating preferences',
                 error: true
             });
+        } finally {
+            setIsLoading(false);
         }
     };
 
+    useEffect(() => {
+        loadPreferences(); 
+    }, []);
+    
+    if (isLoading) {
+        return <LoadingSpinner />;
+    }
+
     return (
         <>
-            {alert && <Tostify message={alert} />}
+            {alert?.text && <Tostify message={alert} />}
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-                <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-lg mx-4 sm:mx-auto sm:max-w-md lg:max-w-lg">
-                    {/* Modal Header */}
+                <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-lg mx-4 sm:mx-auto">
                     <div className="flex justify-between items-center mb-4">
-                        <h2 className="text-lg font-semibold text-gray-800 font-monserrat">Profile</h2>
+                        <h2 className="text-lg font-semibold text-gray-800 font-monserrat">
+                            User Profile
+                        </h2>
                         <button
                             onClick={handleClose}
                             className="text-gray-600 hover:text-red-500"
@@ -116,43 +166,49 @@ const UserProfileModal = ({ handleClose }) => {
                         </button>
                     </div>
 
-                    {/* User Information */}
                     <div className="space-y-4">
                         <div>
-                            <label className="block text-sm font-medium font-monserrat text-gray-700">Name</label>
+                            <label className="block text-sm font-medium font-monserrat text-gray-700">
+                                Name
+                            </label>
                             <input
                                 type="text"
                                 className="mt-1 block w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-md text-gray-700"
-                                value={name || ''}
+                                value={auth?.name || ''}
                                 readOnly
                             />
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium font-monserrat text-gray-700">Email</label>
+                            <label className="block text-sm font-medium font-monserrat text-gray-700">
+                                Email
+                            </label>
                             <input
                                 type="email"
-                                className="mt-1 block w-full px-3 py-2  font-monserrat bg-gray-100 border border-gray-300 rounded-md text-gray-700"
-                                value={email || ''}
+                                className="mt-1 block w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-md text-gray-700"
+                                value={auth?.email || ''}
                                 readOnly
                             />
                         </div>
                     </div>
 
-                    {/* Language Preferences */}
                     <form onSubmit={handleSubmit}>
                         <div className="mt-6 space-y-4">
-                            <h5 className="text-gray-800 font-semibold font-monserrat">Language Preferences</h5>
+                            <h5 className="text-gray-800 font-semibold font-monserrat">
+                                Language Preferences
+                            </h5>
 
                             <div>
-                                <label className="block text-sm font-medium font-monserrat text-gray-700">Source Language</label>
+                                <label className="block text-sm font-medium font-monserrat text-gray-700">
+                                    Source Language
+                                </label>
                                 <select
                                     value={selectedSourceLanguage}
-                                    onChange={e => setSelectedSourceLanguage(e.target.value)}
-                                    className="mt-1 block w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-md text-gray-700"
+                                    onChange={(e) => setSelectedSourceLanguage(e.target.value)}
+                                    className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-gray-700"
                                 >
-                                    <option value="" className="font-monserrat">Select a language</option>
-                                    {languages.map(lang => (
+                                    <option value="">Select a language</option>
+                                    {languages.map((lang) => (
                                         <option key={lang.id} value={lang.code}>
                                             {lang.name}
                                         </option>
@@ -161,14 +217,16 @@ const UserProfileModal = ({ handleClose }) => {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 font-monserrat">Target Language</label>
+                                <label className="block text-sm font-medium font-monserrat text-gray-700">
+                                    Target Language
+                                </label>
                                 <select
                                     value={selectedTargetLanguage}
-                                    onChange={e => setSelectedTargetLanguage(e.target.value)}
-                                    className="mt-1 block w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-md text-gray-700"
+                                    onChange={(e) => setSelectedTargetLanguage(e.target.value)}
+                                    className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-gray-700"
                                 >
-                                    <option value="" className="font-monserrat">Select a language</option>
-                                    {languages.map(lang => (
+                                    <option value="">Select a language</option>
+                                    {languages.map((lang) => (
                                         <option key={lang.id} value={lang.code}>
                                             {lang.name}
                                         </option>
@@ -177,18 +235,17 @@ const UserProfileModal = ({ handleClose }) => {
                             </div>
                         </div>
 
-                        {/* Modal Footer */}
                         <div className="mt-6 flex justify-end space-x-4">
                             <button
                                 type="button"
                                 onClick={handleClose}
-                                className="px-4 py-2 bg-gray-200 font-monserrat text-gray-700 rounded-md hover:bg-gray-300"
+                                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 font-monserrat"
                             >
                                 Cancel
                             </button>
                             <button
                                 type="submit"
-                                className="px-4 py-2 bg-indigo-600  font-monserrat text-white rounded-md hover:bg-blue-700"
+                                className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 font-monserrat"
                             >
                                 Save Changes
                             </button>
@@ -196,7 +253,6 @@ const UserProfileModal = ({ handleClose }) => {
                     </form>
                 </div>
             </div>
-
         </>
     );
 };
