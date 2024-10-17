@@ -35,7 +35,7 @@ const Login = () => {
             const { data } = await client.post('/auth/token/', value)
             localStorage.setItem("access_token_LSAI", data.access_token)
             setAuth({ access_token: data.access_token })
-            navigate('/admin')
+            navigate('/admin', { state: { alert: { text: 'Por favor, ve a tu perfil y configura tus preferencias de idioma.', error: true } } });
         } catch (error) {
             setAlert({
                 text: error.response.data.message,

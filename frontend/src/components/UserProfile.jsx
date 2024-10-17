@@ -55,11 +55,27 @@ const UserProfileModal = ({ handleClose }) => {
     };
 
     const loadPreferences = async () => {
+        // Verificamos si las preferencias están en localStorage
+        const storedPreferences = localStorage.getItem('user_preferences');
+        
+        if (storedPreferences) {
+            const preferences = JSON.parse(storedPreferences);
+            setSelectedSourceLanguage(preferences.source_language);
+            setSelectedTargetLanguage(preferences.target_language);
+            return; // Ya que hemos cargado las preferencias del localStorage, no hacemos la solicitud al backend
+        }
+    
         try {
+            // Si no están en localStorage, cargamos las preferencias del servidor
             const response = await client.get('/user/preferences', getConfig());
             if (response.data) {
                 setSelectedSourceLanguage(response.data.source_language);
                 setSelectedTargetLanguage(response.data.target_language);
+                // Almacenamos las preferencias en localStorage
+                localStorage.setItem('user_preferences', JSON.stringify({
+                    source_language: response.data.source_language,
+                    target_language: response.data.target_language
+                }));
             }
         } catch (error) {
             setAlert({
@@ -68,6 +84,7 @@ const UserProfileModal = ({ handleClose }) => {
             });
         }
     };
+    
 
     useEffect(() => {
         const initializeData = async () => {
@@ -113,15 +130,17 @@ const UserProfileModal = ({ handleClose }) => {
                 target_languages: selectedTargetLanguage
             }, getConfig());
 
+            const preferences = {
+                source_language: selectedSourceLanguage,
+                target_language: selectedTargetLanguage
+            }
             // Actualizamos el estado global
             setAuth(prev => ({
                 ...prev,
-                preferences: {
-                    source_language: selectedSourceLanguage,
-                    target_language: selectedTargetLanguage
-                }
+                preferences
             }));
 
+            localStorage.setItem('user_preferences', JSON.stringify(preferences));
             setAlert({
                 text: response.data.message || 'Preferences updated successfully',
                 error: false

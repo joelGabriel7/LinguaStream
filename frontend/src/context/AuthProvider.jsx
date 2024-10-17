@@ -1,18 +1,18 @@
 import { useState, useEffect, createContext } from 'react';
+import { Toaster } from "@/components/ui/toaster"
 import client from '../config/axios';
-import Tostify from '../components/Tostify';
 
 
 export const AuthContext = createContext()
 
 export const AuthProvider = ({ children }) => {
     const [auth, setAuth] = useState({})
-    const [alert, setAlert] = useState({})
     const [loading, setLoading] = useState(true)
 
     useEffect(() => {
         const authenticatedUser = async () => {
             const token = localStorage.getItem('access_token_LSAI')
+            const preferences = JSON.parse(localStorage.getItem('user_preferences')) || {}
             if (!token) {
                 setLoading(false)
                 return
@@ -31,7 +31,8 @@ export const AuthProvider = ({ children }) => {
                     access_token: token,
                     id: data.id,
                     name: data.name,
-                    email: data.email
+                    email: data.email,
+                    preferences
                 })
 
             } catch (error) {
@@ -62,8 +63,8 @@ export const AuthProvider = ({ children }) => {
                     logout,
                 }}
             >
-                {alert && <Tostify message={alert} />}
                 {children}
+                <Toaster />
             </AuthContext.Provider>
 
         </>
