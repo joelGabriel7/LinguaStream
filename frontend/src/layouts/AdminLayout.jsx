@@ -10,13 +10,16 @@ export const AdminLayout = () => {
     if (loading) return '<h1>Cargando...<h1/>';
     return (
         <>
-            <Header />
-            {auth?.access_token ? (
-                <main className="container mx-auto mt-10 max-w-screen-xl">
-                    <Outlet />
-                </main>
-            ) : <Navigate to={"/"} />}
-            <Footer />
+            <div className="flex flex-col min-h-screen">
+                <Header />
+                {auth?.access_token ? (
+                    <main className="container mx-auto mt-10 max-w-screen-xl flex-1 ">
+                        <Outlet />
+                    </main>
+                ) : <Navigate to={"/"} />}
+
+                <Footer />
+            </div>
         </>
     )
 }
