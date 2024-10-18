@@ -1,7 +1,7 @@
 ## LinguaStream: A Multilingual Chatbot API
 
 ### Project Overview
-A real-time, multilingual chatbot capable of translating text between multiple languages within a chat interface. Users can effortlessly switch between languages, fostering seamless global communication.
+A real-time multilingual chatbot capable of translating text between multiple languages within a chat interface. Users can switch between languages effortlessly, fostering seamless global communication and interative responses with AI from Google Geminis.
 
 ### Key Features
 * **User Authentication:** Secure sign-up and sign-in with JWT.
