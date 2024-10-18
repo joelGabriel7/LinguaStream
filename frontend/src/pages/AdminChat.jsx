@@ -11,6 +11,7 @@ const AdminChat = () => {
     const [message, setMessage] = useState('');
     const [preferencesSet, setPreferencesSet] = useState(false);
     const [messages, setMessages] = useState([]);
+    const [isLoading, setIsLoading] = useState(false);
     const [isInitialized, setIsInitialized] = useState(false);
     const { auth } = useAuth();
     const { toast } = useToast();
@@ -90,14 +91,17 @@ const AdminChat = () => {
             const decodedClean = new DOMParser().parseFromString(clean, 'text/html').body.textContent || "";
             
             setMessages(prev => [...prev, { message: decodedClean, isServerResponse: true }]);
+            setIsLoading(false);
         };
 
         ws.current.onclose = () => {
             setIsConnected(false);
+            setIsLoading(false);
         };
 
         ws.current.onerror = (error) => {
             setIsConnected(false);
+            setIsLoading(false);
             handleReconnect();
         };
     };
@@ -146,6 +150,7 @@ const AdminChat = () => {
         };
 
         if (ws.current && ws.current.readyState === WebSocket.OPEN) {
+            setIsLoading(true);
             ws.current.send(JSON.stringify(data));
             setMessages(prev => [...prev, data]);
             setMessage("");
@@ -163,7 +168,7 @@ const AdminChat = () => {
                 <h1>LingueStreamAI</h1>
             </div>
             <div className="flex-1 flex flex-col justify-end max-h-screen overflow-y-auto">
-                <MessageContainer messages={messages} />
+                <MessageContainer messages={messages} isLoading={isLoading} />
             </div>
 
             <div className="border-t border-gray-200 bg-white p-4 flex-shrink-0">

@@ -1,17 +1,26 @@
 import { useEffect, useRef, useState } from 'react'
 
-const MessageContainer = ({ messages }) => {
+const MessageSkeleton = () => (
+    <div className="flex justify-start items-start gap-3 animate-pulse">
+        <div className="w-8 h-8 bg-gray-200 rounded-full flex-shrink-0" />
+        <div className="flex flex-col gap-2 max-w-[70%]">
+            <div className="h-4 bg-gray-200 rounded-lg w-32" />
+            <div className="h-4 bg-gray-200 rounded-lg w-48" />
+            <div className="h-4 bg-gray-200 rounded-lg w-40" />
+        </div>
+    </div>
+);
+
+const MessageContainer = ({ messages, isLoading }) => {
     const messagesEndRef = useRef(null);
     const [shouldScroll, setShouldScroll] = useState(true);
 
-    // Función para desplazar el scroll al final
     const scrollToBottom = () => {
         if (shouldScroll) {
             messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
         }
     };
 
-    // Desplazar el scroll solo cuando se reciben nuevos mensajes
     useEffect(() => {
         scrollToBottom();
         setShouldScroll(true);
@@ -27,7 +36,6 @@ const MessageContainer = ({ messages }) => {
                     {msg.isServerResponse ? (
                         <>
                             <div className="w-8 h-8 rounded-full bg-indigo-600 flex-shrink-0">
-                                {/* Avatar del chatbot como SVG */}
                                 <svg
                                     xmlns="http://www.w3.org/2000/svg"
                                     viewBox="0 0 24 24"
@@ -60,6 +68,7 @@ const MessageContainer = ({ messages }) => {
                     </div>
                 </div>
             ))}
+            {isLoading && <MessageSkeleton />}
             <div ref={messagesEndRef} />
         </div>
     );
