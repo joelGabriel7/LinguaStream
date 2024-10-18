@@ -1,97 +1,127 @@
 import { useEffect, useState, useRef } from "react";
-import { useToast } from "@/hooks/use-toast"
+import { useToast } from "@/hooks/use-toast";
 import useAuth from "@/hooks/useAuth";
-
-
 
 const AdminChat = () => {
     const [isConnected, setIsConnected] = useState(false);
     const [message, setMessage] = useState('');
     const [preferencesSet, setPreferencesSet] = useState(false);
     const [messages, setMessages] = useState([]);
+    const [isInitialized, setIsInitialized] = useState(false);
     const { auth } = useAuth();
     const { toast } = useToast();
-    const ws = useRef(null)
+    const ws = useRef(null);
     const reconnectTimeout = useRef(null);
 
+    // Efecto para manejar la inicialización y carga de mensajes
     useEffect(() => {
+        const initializeChat = async () => {
+            if (auth?.access_token && !isInitialized) {
+                const storedMessages = localStorage.getItem(`chat_history_${auth.access_token}`);
+                if (storedMessages) {
+                    try {
+                        const parsedMessages = JSON.parse(storedMessages);
+                        setMessages(parsedMessages);
+                        console.log('Mensajes cargados:', parsedMessages);
+                    } catch (error) {
+                        console.error('Error parsing stored messages:', error);
+                        setMessages([]);
+                    }
+                }
+                setIsInitialized(true);
+            }
+        };
 
+        initializeChat();
+    }, [auth?.access_token, isInitialized]);
+
+    // Reiniciar el estado cuando el token no está presente
+    useEffect(() => {
+        if (!auth?.access_token) {
+            setMessages([]);
+            setIsInitialized(false);
+            if (ws.current) {
+                ws.current.close();
+            }
+        }
+    }, [auth?.access_token]);
+
+    // Guardar mensajes cuando cambien
+    useEffect(() => {
+        if (auth?.access_token && messages.length > 0) {
+            localStorage.setItem(`chat_history_${auth.access_token}`, JSON.stringify(messages));
+            console.log('Mensajes guardados:', messages);
+        }
+    }, [messages, auth?.access_token]);
+
+    useEffect(() => {
         if (auth?.preferences?.source_language && auth?.preferences?.target_language) {
             setPreferencesSet(true);
         } else {
             setPreferencesSet(false);
         }
+    }, [auth]);
 
-
-    }, [auth])
-
+    // Conectar WebSocket cuando el token esté disponible
     useEffect(() => {
-        if (auth?.access_token) {
-            connectWebsocket()
-
+        if (auth?.access_token && isInitialized) {
+            connectWebsocket();
 
             return () => {
-                if (ws.current) ws.current.close();
+                if (ws.current) {
+                    ws.current.close();
+                    if (reconnectTimeout.current) {
+                        clearTimeout(reconnectTimeout.current);
+                    }
+                }
             };
         }
-
-    }, [auth?.access_token])
+    }, [auth?.access_token, isInitialized]);
 
     const connectWebsocket = () => {
+        if (!auth?.access_token) return;
 
-        ws.current = new WebSocket(`${import.meta.env.VITE_BACKEND_URL_WS}/ws/chatbot/?token=${auth.access_token}`)
+        ws.current = new WebSocket(`${import.meta.env.VITE_BACKEND_URL_WS}/ws/chatbot/?token=${auth.access_token}`);
 
         ws.current.onopen = () => {
-            console.log('Websocket connected')
-            setMessages((prev) => [...prev]);
-            setIsConnected(true)
+            console.log('Websocket connected');
+            setIsConnected(true);
         };
 
         ws.current.onmessage = (event) => {
             const response = event.data;
-            setMessages((prev) => [
-                ...prev,
-                { message: response, isServerResponse: true } 
-            ]);
+            setMessages(prev => [...prev, { message: response, isServerResponse: true }]);
         };
 
         ws.current.onclose = () => {
-            setMessages((prev) => [...prev,]);
-            setIsConnected(false)
+            setIsConnected(false);
         };
 
         ws.current.onerror = (error) => {
-            setIsConnected(false)
-            handleReconnect()
+            setIsConnected(false);
+            handleReconnect();
         };
-
-    }
+    };
 
     const handleReconnect = () => {
-        // Establecer un tiempo de espera para intentar reconectar
+        if (reconnectTimeout.current) {
+            clearTimeout(reconnectTimeout.current);
+        }
+
         reconnectTimeout.current = setTimeout(() => {
-            if (!isConnected) {
+            if (!isConnected && auth?.access_token) {
                 toast({
                     variant: 'destructive',
                     title: 'Connection error',
                     description: 'There was an issue connecting to the chat.',
                     duration: 3000,
                 });
+                connectWebsocket();
             }
-           
-            connectWebsocket(); 
-                toast({
-                    // variant: 'destructive',
-                    title: 'Connection',
-                    description: 'You can start to chat',
-                    duration: 3000,
-                });
-        }, 5000); // 5 segundos antes de intentar reconectar
+        }, 5000);
     };
 
-
     const handlerSubmit = e => {
-
         e.preventDefault();
 
         if (!message.trim()) {
@@ -100,39 +130,25 @@ const AdminChat = () => {
                 title: "Message cannot be empty",
                 description: "Please enter a message before sending",
                 duration: 3000
-            })
-            return
+            });
+            return;
         }
 
         const data = {
             message,
             target_language: auth?.preferences?.target_language || 'en',
             isServerResponse: false
-        }
+        };
 
         if (ws.current && ws.current.readyState === WebSocket.OPEN) {
             ws.current.send(JSON.stringify(data));
-            setMessages((prev) => [...prev, data]);
+            setMessages(prev => [...prev, data]);
             setMessage("");
-        } 
-
-    }
-
-    useEffect(() => {
-        const storedMessages = localStorage.getItem('chat_history');
-        if (storedMessages) {
-            setMessages(JSON.parse(storedMessages));
         }
-    }, []);
-
+    };
 
     const MessageContainer = ({ messages }) => {
         const messagesEndRef = useRef(null);
-
-        useEffect(() => {
-            localStorage.setItem('chat_history', JSON.stringify(messages));
-        }, [messages]);
-
 
         const scrollToBottom = () => {
             messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -173,25 +189,17 @@ const AdminChat = () => {
         );
     };
 
-
-
-
     return (
         <div className="flex flex-col h-screen bg-white overflow-hidden">
-            {/* Header */}
             <div className="bg-white text-indigo-500 text-2xl py-3 px-4 text-center font-medium shadow-sm flex-shrink-0">
                 <h1>LingueStreamAI</h1>
-
             </div>
 
-            {/* Main container */}
             <div className="flex-1 flex flex-col max-w-3xl w-full mx-auto overflow-hidden">
-                {/* Messages area */}
-                <div className="flex-1  flex items-end justify-end overflow-y-auto min-h-0 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+                <div className="flex-1 flex items-end justify-end overflow-y-auto min-h-0 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
                     <MessageContainer messages={messages} />
                 </div>
 
-                {/* Input area */}
                 <div className="border-t border-gray-200 bg-white p-4 flex-shrink-0">
                     <form onSubmit={handlerSubmit} className="max-w-4xl mx-auto">
                         <div className="flex gap-3 items-center">
@@ -214,10 +222,8 @@ const AdminChat = () => {
                     </form>
                 </div>
             </div>
-
         </div>
     );
-
 };
 
 export default AdminChat;
