@@ -11,7 +11,7 @@ A real-time multilingual chatbot capable of translating text between multiple la
 * **Gemini Integration:** Enhanced interactivity through Gemini API.
 
 ### Technology Stack
-* **Backend:** Python 3.8+, FastAPI, PostgreSQL 12+, SQLModel
+* **Backend:** Python 3.8+, FastAPI, PostgreSQL 12+, SQLModel, NodeJs 14+
 * **Frontend:** React, TailwindCSS, ShadcnUi, Context API
 
 
