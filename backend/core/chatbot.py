@@ -10,15 +10,17 @@ def chatbot_ai(user_input: str, target_language: str):
     try:
         # Configurar la API de Generative pornemos el api_key y seleccionamos el modelo 
         genai.configure(api_key=os.environ["API_KEY"])
-        model = genai.GenerativeModel("gemini-1.5-flash")
+        model = genai.GenerativeModel("gemini-1.5-pro")
         # Generar contenido usando el modelo proporcionado
         response = model.generate_content(
             user_input,
             generation_config=genai.types.GenerationConfig(
                 candidate_count=1,
                 stop_sequences=["x"],
-                max_output_tokens=20,
-                temperature=1.2,
+                max_output_tokens=500000,
+                temperature=1.4,
+                top_k=64,
+                top_p=0.96
             ),
         )
         # Traducir la respuesta generada al lenguaje objetivo
