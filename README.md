@@ -56,7 +56,9 @@ Once you have the key, update the file `.env.template` rename to `.env` file wit
 - **ALGORITHM:** Encryption algorithm for JWT, (eg, HS256)
 - **API_KEY:** Google Cloud API key
 - **FRONTEND_URL:** URL for the frontend (usually `http://localhost:5173`)
-
+## Run Server Backend Two Options
+* - **fastapi dev main.py**
+* - **uvicorn main:app --reload**
 
 # **Usages API**
 
