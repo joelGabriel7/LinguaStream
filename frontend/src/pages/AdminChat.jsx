@@ -1,25 +1,14 @@
 import { useEffect, useState, useRef } from "react";
-import { useLocation } from "react-router-dom";
-import { AlertCircle } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
-import {
-    Alert,
-    AlertDescription,
-    AlertTitle,
-} from "@/components/ui/alert"
 import useAuth from "@/hooks/useAuth";
 
 
 
 const AdminChat = () => {
-    const [showAlert, setShowAlert] = useState(false);
     const [isConnected, setIsConnected] = useState(false);
     const [message, setMessage] = useState('');
     const [preferencesSet, setPreferencesSet] = useState(false);
     const [messages, setMessages] = useState([]);
-    const [isTyping, setIsTyping] = useState(false);
-    const location = useLocation();
-    const { alert } = location.state || {}
     const { auth } = useAuth();
     const { toast } = useToast();
     const ws = useRef(null)
@@ -31,16 +20,10 @@ const AdminChat = () => {
             setPreferencesSet(true);
         } else {
             setPreferencesSet(false);
-            setShowAlert(true)
         }
 
-        if (alert) {
-            setShowAlert(true)
-            const timer = setTimeout(() => setShowAlert(false), 15000);
-            return () => clearTimeout(timer)
-        }
 
-    }, [auth, alert])
+    }, [auth])
 
     useEffect(() => {
         if (auth?.access_token) {
@@ -68,18 +51,16 @@ const AdminChat = () => {
             const response = event.data;
             setMessages((prev) => [
                 ...prev,
-                { message: response, isServerResponse: true } // Marcar como respuesta del servidor
+                { message: response, isServerResponse: true } 
             ]);
         };
 
         ws.current.onclose = () => {
-            console.log('websocket closed')
             setMessages((prev) => [...prev,]);
             setIsConnected(false)
         };
 
         ws.current.onerror = (error) => {
-            console.error("WebSocket Error: ", error);
             setIsConnected(false)
             handleReconnect()
         };
@@ -133,9 +114,7 @@ const AdminChat = () => {
             ws.current.send(JSON.stringify(data));
             setMessages((prev) => [...prev, data]);
             setMessage("");
-        } else {
-            console.log("WebSocket is not open");
-        }
+        } 
 
     }
 
@@ -147,25 +126,7 @@ const AdminChat = () => {
     }, []);
 
 
-    const TypingIndicator = () => {
-        return (
-            <div className="flex justify-start">
-                <div className="bg-gray-100 p-3 rounded-lg rounded-tl-none max-w-[70%]">
-                    <div className="flex gap-1 items-center">
-                        <span className="text-red-600">....</span>
-                        <span className="flex gap-1">
-                            <span className="w-1.5 h-1.5 bg-blu-400 rounded-full animate-bounce [animation-delay:-0.3s]"></span>
-                            <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.15s]"></span>
-                            <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce"></span>
-                        </span>
-                    </div>
-                </div>
-            </div>
-        );
-    };
-
-
-    const MessageContainer = ({ messages, isTyping }) => {
+    const MessageContainer = ({ messages }) => {
         const messagesEndRef = useRef(null);
 
         useEffect(() => {
@@ -179,7 +140,7 @@ const AdminChat = () => {
 
         useEffect(() => {
             scrollToBottom();
-        }, [messages, isTyping]);
+        }, [messages]);
 
         return (
             <div className="flex flex-col gap-6 py-4 px-4 md:px-8">
@@ -207,7 +168,6 @@ const AdminChat = () => {
                         )}
                     </div>
                 ))}
-                {isTyping && <TypingIndicator />}
                 <div ref={messagesEndRef} />
             </div>
         );
@@ -226,20 +186,9 @@ const AdminChat = () => {
 
             {/* Main container */}
             <div className="flex-1 flex flex-col max-w-3xl w-full mx-auto overflow-hidden">
-                {/* Alert area */}
-                {showAlert && !preferencesSet && (
-                    <div className="px-4 pt-4">
-                        <Alert variant="destructive">
-                            <AlertCircle className="h-4 w-4" />
-                            <AlertTitle>Warning!</AlertTitle>
-                            <AlertDescription>{alert?.text}</AlertDescription>
-                        </Alert>
-                    </div>
-                )}
-
                 {/* Messages area */}
                 <div className="flex-1  flex items-end justify-end overflow-y-auto min-h-0 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-                    <MessageContainer messages={messages} isTyping={isTyping} />
+                    <MessageContainer messages={messages} />
                 </div>
 
                 {/* Input area */}

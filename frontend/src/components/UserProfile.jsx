@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import client from "../config/axios";
 import useAuth from "../hooks/useAuth";
-import Tostify from '../components/Tostify';
+import { useToast } from "@/hooks/use-toast";
 
 const LoadingSpinner = () => (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
@@ -16,9 +16,9 @@ const UserProfileModal = ({ handleClose }) => {
     const [languages, setLanguages] = useState([]);
     const [selectedSourceLanguage, setSelectedSourceLanguage] = useState('');
     const [selectedTargetLanguage, setSelectedTargetLanguage] = useState('');
-    const [alert, setAlert] = useState({});
     const [isLoading, setIsLoading] = useState(true);
     const { auth, setAuth } = useAuth();
+    const { toast } = useToast(); // Usamos el hook para las notificaciones
 
     const getConfig = () => ({
         headers: {
@@ -35,9 +35,11 @@ const UserProfileModal = ({ handleClose }) => {
                 ...response.data
             }));
         } catch (error) {
-            setAlert({
-                text: 'Error loading user data',
-                error: true
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: "Failed to load user data. Please try again.",
+                duration: 3000
             });
         }
     };
@@ -47,50 +49,49 @@ const UserProfileModal = ({ handleClose }) => {
             const response = await client.get('/languages/all', getConfig());
             setLanguages(response.data);
         } catch (error) {
-            setAlert({
-                text: 'Error loading languages',
-                error: true
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: "Failed to load languages. Please try again.",
+                duration: 3000
             });
         }
     };
 
     const loadPreferences = async () => {
-        // Verificamos si las preferencias están en localStorage
         const storedPreferences = localStorage.getItem('user_preferences');
         
         if (storedPreferences) {
             const preferences = JSON.parse(storedPreferences);
             setSelectedSourceLanguage(preferences.source_language);
             setSelectedTargetLanguage(preferences.target_language);
-            return; // Ya que hemos cargado las preferencias del localStorage, no hacemos la solicitud al backend
+            return;
         }
     
         try {
-            // Si no están en localStorage, cargamos las preferencias del servidor
             const response = await client.get('/user/preferences', getConfig());
             if (response.data) {
                 setSelectedSourceLanguage(response.data.source_language);
                 setSelectedTargetLanguage(response.data.target_language);
-                // Almacenamos las preferencias en localStorage
                 localStorage.setItem('user_preferences', JSON.stringify({
                     source_language: response.data.source_language,
                     target_language: response.data.target_language
                 }));
             }
         } catch (error) {
-            setAlert({
-                text: error.response.data.detail,
-                error: true
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: "Failed to load user preferences. Please try again.",
+                duration: 3000
             });
         }
     };
-    
 
     useEffect(() => {
         const initializeData = async () => {
             setIsLoading(true);
             try {
-                // Cargamos los datos del usuario y los idiomas
                 await loadUserData();
                 await loadLanguages();
             } catch (error) {
@@ -107,17 +108,21 @@ const UserProfileModal = ({ handleClose }) => {
         e.preventDefault();
 
         if (!selectedSourceLanguage || !selectedTargetLanguage) {
-            setAlert({
-                text: 'Please select both source and target languages',
-                error: true
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: "Please select both source and target languages.",
+                duration: 3000
             });
             return;
         }
 
         if (selectedSourceLanguage === selectedTargetLanguage) {
-            setAlert({
-                text: 'Source and target languages must be different',
-                error: true
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: "Source and target languages must be different.",
+                duration: 3000
             });
             return;
         }
@@ -134,26 +139,27 @@ const UserProfileModal = ({ handleClose }) => {
                 source_language: selectedSourceLanguage,
                 target_language: selectedTargetLanguage
             }
-            // Actualizamos el estado global
             setAuth(prev => ({
                 ...prev,
                 preferences
             }));
 
             localStorage.setItem('user_preferences', JSON.stringify(preferences));
-            setAlert({
-                text: response.data.message || 'Preferences updated successfully',
-                error: false
+            toast({
+                variant: "default",
+                title: "Success",
+                description: response.data.message || 'Preferences updated successfully.',
+                duration: 3000
             });
-
-            setTimeout(() => {
-                handleClose();
-            }, 2000);
+            handleClose();
+       
 
         } catch (error) {
-            setAlert({
-                text: 'Error updating preferences',
-                error: true
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: "Failed to update preferences. Please try again.",
+                duration: 3000
             });
         } finally {
             setIsLoading(false);
