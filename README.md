@@ -53,7 +53,7 @@ Once you have the key, update the file `.env.template` rename to `.env` file wit
 
 - **DATABASE_URL:** PostgreSQL database URL
 - **SECRET_KEY:** Key for encrypting JWT tokens
-- **ALGORITHM:** Encryption algorithm for JWT
+- **ALGORITHM:** Encryption algorithm for JWT, (eg, HS256)
 - **API_KEY:** Google Cloud API key
 - **FRONTEND_URL:** URL for the frontend (usually `http://localhost:5173`)
 
@@ -65,7 +65,7 @@ The API will be available for accessing Swagger's interactive documentation, vis
 ### **Endpoints**
 - **Authentication**
    - **`POST /auth/token/:`**  Generates an access token for the user, providing user information.
-   - **`POST /auth/users/:`**Registers a new user.
+   - **`POST /auth/users/:`** Registers a new user.
 - **Languages:** 
    - **`POST  /languages/seed:`** Populates the database with languages available on the Cloud Translate API.
    - **`GET /languages/all:`** Retrieves all languages supported by Cloud Translate. Requires an access token.
