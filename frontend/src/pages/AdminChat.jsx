@@ -1,71 +1,8 @@
 import { useEffect, useState, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
 import useAuth from "@/hooks/useAuth";
-
-const MessageContainer = ({ messages }) => {
-    const messagesEndRef = useRef(null);
-    const [shouldScroll, setShouldScroll] = useState(true);
-
-    // Función para desplazar el scroll al final
-    const scrollToBottom = () => {
-        if (shouldScroll) {
-            messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-        }
-    };
-
-    // Desplazar el scroll solo cuando se reciben nuevos mensajes
-    useEffect(() => {
-        scrollToBottom();
-        setShouldScroll(true);
-    }, [messages]);
-
-    return (
-        <div className="flex flex-col gap-6 py-4 px-4 md:px-8 overflow-y-auto max-h-[500px]">
-            {messages.map((msg, index) => (
-                <div
-                    key={index}
-                    className={`flex ${msg.isServerResponse ? 'justify-start' : 'justify-end'} items-start gap-3`}
-                >
-                    {msg.isServerResponse ? (
-                        <>
-                            <div className="w-8 h-8 rounded-full bg-indigo-600 flex-shrink-0">
-                                {/* Avatar del chatbot como SVG */}
-                                <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    className="w-8 h-8"
-                                >
-                                    <circle cx="12" cy="12" r="10" className="fill-current text-indigo-600" />
-                                    <path d="M9 12h6M9 16h6" stroke="white" strokeWidth={2} strokeLinecap="round" />
-                                </svg>
-                            </div>
-                        </>
-                    ) : (
-                        <>
-                            <div className="w-8 h-8 rounded-full bg-indigo-100 flex-shrink-0">
-                                <div className="bg-blue-500 rounded-full w-full h-full flex items-center justify-center text-white">
-                                    U
-                                </div>
-                            </div>
-                        </>
-                    )}
-                    <div
-                        className={`max-w-[70%] p-4 rounded-2xl
-                            ${msg.isServerResponse
-                                ? 'bg-gray-100/80 text-gray-800 rounded-tl-none'
-                                : 'bg-indigo-600 text-white rounded-tr-none'
-                            }`}
-                    >
-                        <p className="text-[15px] leading-relaxed">{msg.message}</p>
-                    </div>
-                </div>
-            ))}
-            <div ref={messagesEndRef} />
-        </div>
-    );
-};
+import DOMPurify from 'dompurify';
+import MessageContainer from "@/components/MessageContainer";
 
 
 
@@ -89,9 +26,7 @@ const AdminChat = () => {
                     try {
                         const parsedMessages = JSON.parse(storedMessages);
                         setMessages(parsedMessages);
-                        console.log('Mensajes cargados:', parsedMessages);
                     } catch (error) {
-                        console.error('Error parsing stored messages:', error);
                         setMessages([]);
                     }
                 }
@@ -151,7 +86,10 @@ const AdminChat = () => {
 
         ws.current.onmessage = (event) => {
             const response = event.data;
-            setMessages(prev => [...prev, { message: response, isServerResponse: true }]);
+            const clean = DOMPurify.sanitize(response)
+            const decodedClean = new DOMParser().parseFromString(clean, 'text/html').body.textContent || "";
+            
+            setMessages(prev => [...prev, { message: decodedClean, isServerResponse: true }]);
         };
 
         ws.current.onclose = () => {
@@ -180,7 +118,7 @@ const AdminChat = () => {
                 connectWebsocket();
                 toast({
                     variant: 'default',
-                    title: 'Your are online',
+                    title: 'Your are reconnected',
                     description: 'You can start to chat.',
                     duration: 3000,
                 });
@@ -222,8 +160,8 @@ const AdminChat = () => {
 
         <div className="flex-1 flex flex-col max-w-3xl w-full mx-auto overflow-hidden">
             <div className="bg-white text-indigo-500 text-2xl py-3 px-4 text-center font-medium shadow-sm flex-shrink-0">
-                 <h1>LingueStreamAI</h1>
-             </div>
+                <h1>LingueStreamAI</h1>
+            </div>
             <div className="flex-1 flex flex-col justify-end max-h-screen overflow-y-auto">
                 <MessageContainer messages={messages} />
             </div>
@@ -233,9 +171,10 @@ const AdminChat = () => {
                     <div className="flex gap-3 items-center">
                         <input
                             type="text"
-                            className="flex-1 rounded-2xl border border-gray-300 py-3 px-4 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-[15px]"
+                            className="flex-1 rounded-2xl border border-gray-300 py-3 px-4 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-[15px] disabled:opacity-50 transition-colors"
                             placeholder="Type here..."
                             value={message}
+                            disabled={!isConnected}
                             onChange={(e) => {
                                 if (e && e.target) {
                                     setMessage(e.target.value);
@@ -243,7 +182,7 @@ const AdminChat = () => {
                             }}
                         />
                         <button
-                            disabled={!preferencesSet}
+                            disabled={!preferencesSet && !isConnected}
                             className="bg-indigo-600 text-white rounded-full p-3 h-12 w-12 flex items-center justify-center hover:bg-indigo-700 disabled:opacity-50 transition-colors"
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-5 h-5 rotate-90">
@@ -254,7 +193,6 @@ const AdminChat = () => {
                 </form>
             </div>
         </div>
-        // </div>
     );
 };
 
